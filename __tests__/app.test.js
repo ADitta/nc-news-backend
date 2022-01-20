@@ -326,7 +326,7 @@ describe("/api/comments/:comment_id", () => {
 
 describe("/api", () => {
   describe("GET", () => {
-    test("Returns test status 200 and show JSON file", () => {
+    test.only("Returns test status 200 and show JSON file", () => {
       return request(app)
         .get("/api")
         .expect(200)
