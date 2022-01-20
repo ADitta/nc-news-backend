@@ -143,6 +143,7 @@ describe("/api/articles", () => {
         .then(({ body }) => {
           {
             expect(typeof body).toBe("object");
+
             body.articles.forEach((article) => {
               expect(article).toMatchObject({
                 article_id: expect.any(Number),
@@ -199,6 +200,17 @@ describe("/api/articles", () => {
         });
     });
 
+    test("Return status code 200 and should should display topics of paper", () => {
+      return request(app)
+        .get("/api/articles?topic=cats")
+        .expect(200)
+        .then(({ body }) => {
+          body.articles.forEach((article) => {
+            expect(article.topic).toBe("cats");
+          });
+        });
+    });
+
     test("Return status code 400 when provided incorrect order_by url", () => {
       return request(app)
         .get("/api/articles?order_by=ASCFGD")
@@ -214,6 +226,112 @@ describe("/api/articles", () => {
         .expect(400)
         .then(({ body }) => {
           expect(body.msg).toBe("Bad request");
+        });
+    });
+
+    test("Return status code 400 when provided incorrect topic", () => {
+      return request(app)
+        .get("/api/articles?topic=randomtopic")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("not found");
+        });
+    });
+  });
+});
+
+describe("/api/articles/:article_id/comments", () => {
+  describe("GET", () => {
+    test("Return status code 200 with an array of comments for the given article id", () => {
+      return request(app)
+        .get("/api/articles/1/comments")
+        .expect(200)
+        .then(({ body }) => {
+          expect(typeof body).toBe("object");
+          body.comments.forEach((comment) => {
+            expect(comment).toMatchObject({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              body: expect.any(String),
+              author: expect.any(String),
+            });
+          });
+        });
+    });
+    test("Returns status code of 404 with error message when provided non existent articleId", () => {
+      return request(app)
+        .get("/api/articles/9999/comments")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not found");
+        });
+    });
+  });
+
+  describe("POST", () => {
+    test("Return status code 201 with the new comment", () => {
+      const newComment = { username: "butter_bridge", body: "some nice curry" };
+      return request(app)
+        .post("/api/articles/1/comments")
+        .send(newComment)
+        .expect(201)
+        .then(({ body }) => {
+          expect(body.comment).toEqual({
+            comment_id: expect.any(Number),
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+            body: "some nice curry",
+            author: "butter_bridge",
+            article_id: 1,
+          });
+        });
+    });
+
+    test("Returns status code of 404 with error message when provided non existent articleId", () => {
+      return request(app)
+        .post("/api/articles/9999/comments")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not found");
+        });
+    });
+
+    test("Returns status code of 404 with error message when provided non existent username", () => {
+      const newComment = { username: "masaala", body: "some nice curry" };
+      return request(app)
+        .post("/api/articles/1/comments")
+        .send(newComment)
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not found");
+        });
+    });
+  });
+});
+
+describe("/api/comments/:comment_id", () => {
+  describe("DELETE", () => {
+    test("Returns test status 204 and deletes a comment", () => {
+      return request(app)
+        .delete("/api/comments/1")
+        .expect(204)
+        .then((res) => {
+          //   console.log(res);
+          expect(res.body).toEqual({});
+        });
+    });
+  });
+});
+
+describe("/api", () => {
+  describe("GET", () => {
+    test("Returns test status 200 and show JSON file", () => {
+      return request(app)
+        .get("/api")
+        .expect(200)
+        .then((res) => {
+          expect(typeof res.body.contents).toBe("string");
         });
     });
   });

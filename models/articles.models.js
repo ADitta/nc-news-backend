@@ -26,7 +26,15 @@ exports.updateArticleById = (articleId, articleBody) => {
     });
 };
 
-exports.selectArticles = (querySort = "created_at", queryOrder = "DESC") => {
+exports.selectArticles = (
+  querySort = "created_at",
+  queryOrder = "DESC",
+  queryTopic
+) => {
+  let thereIsTopic = false;
+  if (!queryTopic) {
+    thereIsTopic = true;
+  }
   const allowedSortBy = [
     "article_id",
     "title",
@@ -53,10 +61,37 @@ exports.selectArticles = (querySort = "created_at", queryOrder = "DESC") => {
         FROM articles
         INNER JOIN comments
         ON articles.article_id = comments.article_id
+        WHERE ${thereIsTopic} OR topic = $1
         GROUP BY articles.article_id
-        ORDER BY ${querySort} ${queryOrder};`
+        ORDER BY ${querySort} ${queryOrder};`,
+      [queryTopic]
     )
     .then(({ rows }) => {
       return rows;
+    });
+};
+
+exports.selectCommentsByArticleId = (articleId) => {
+  return db
+    .query(
+      `SELECT comment_id, votes, created_at, author, body FROM comments
+    WHERE article_id = $1;`,
+      [articleId]
+    )
+    .then((comments) => {
+      return comments.rows;
+    });
+};
+
+exports.createCommentByArticleId = (username, body, articleId) => {
+  return db
+    .query(
+      `INSERT INTO comments
+  (author, body, article_id)
+  VALUES($1,$2,$3) RETURNING *;`,
+      [username, body, articleId]
+    )
+    .then((comment) => {
+      return comment.rows[0];
     });
 };
