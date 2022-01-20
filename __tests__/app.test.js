@@ -332,6 +332,7 @@ describe("/api", () => {
         .expect(200)
         .then((res) => {
           expect(typeof res.body.contents).toBe("string");
+          // console.log("done");
         });
     });
   });
