@@ -29,8 +29,11 @@ exports.updateArticleById = (articleId, articleBody) => {
 exports.selectArticles = (
   querySort = "created_at",
   queryOrder = "DESC",
-  queryTopic
+  queryTopic,
+  queryLimit = 10,
+  queryPage = 1
 ) => {
+  let startingPage = (queryPage - 1) * queryLimit;
   let thereIsTopic = false;
   if (!queryTopic) {
     thereIsTopic = true;
@@ -63,10 +66,12 @@ exports.selectArticles = (
         ON articles.article_id = comments.article_id
         WHERE ${thereIsTopic} OR topic = $1
         GROUP BY articles.article_id
-        ORDER BY ${querySort} ${queryOrder};`,
+        ORDER BY ${querySort} ${queryOrder} 
+        LIMIT ${queryLimit} OFFSET ${startingPage};`,
       [queryTopic]
     )
     .then(({ rows }) => {
+      console.log(rows);
       return rows;
     });
 };

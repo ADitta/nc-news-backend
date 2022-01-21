@@ -75,7 +75,7 @@ describe("/api/articles/:article_id", () => {
       return request(app)
         .patch("/api/articles/1")
         .send(increaseVotes)
-        .expect(201)
+        .expect(200)
         .then(({ body }) => {
           expect(typeof body).toBe("object");
           expect(body.result).toEqual({
@@ -95,7 +95,7 @@ describe("/api/articles/:article_id", () => {
       return request(app)
         .patch("/api/articles/1")
         .send(decreaseVotes)
-        .expect(201)
+        .expect(200)
         .then(({ body }) => {
           expect(typeof body).toBe("object");
           expect(body.result).toEqual({
@@ -229,12 +229,30 @@ describe("/api/articles", () => {
         });
     });
 
-    test("Return status code 400 when provided incorrect topic", () => {
+    test("Return status code 404 when provided incorrect topic", () => {
       return request(app)
         .get("/api/articles?topic=randomtopic")
         .expect(404)
         .then(({ body }) => {
           expect(body.msg).toBe("not found");
+        });
+    });
+
+    test("Return status code 200 and should show 3 articles", () => {
+      return request(app)
+        .get("/api/articles?limit=3")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles.length).toBe(3);
+        });
+    });
+
+    test.only("Return status code 200 and should display from article 4 onwards", () => {
+      return request(app)
+        .get("/api/articles?limit=2&p=2&sort_by=article_id&order_by=asc")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles[0]).toBe(3);
         });
     });
   });

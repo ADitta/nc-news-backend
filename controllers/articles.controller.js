@@ -50,15 +50,21 @@ exports.getArticles = (req, res, next) => {
   const querySort = req.query.sort_by;
   const queryOrder = req.query.order_by;
   const queryTopic = req.query.topic;
+  const queryLimit = req.query.limit;
+  const queryPage = req.query.p;
 
   return checkTopicExists(queryTopic)
     .then((exists) => {
       if (exists) {
-        return selectArticles(querySort, queryOrder, queryTopic).then(
-          (articles) => {
-            res.status(200).send({ articles });
-          }
-        );
+        return selectArticles(
+          querySort,
+          queryOrder,
+          queryTopic,
+          queryLimit,
+          queryPage
+        ).then((articles) => {
+          res.status(200).send({ articles });
+        });
       } else {
         return Promise.reject({ status: 404, msg: "not found" });
       }
