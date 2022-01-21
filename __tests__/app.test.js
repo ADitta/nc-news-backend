@@ -200,7 +200,7 @@ describe("/api/articles", () => {
         });
     });
 
-    test("Return status code 200 and should should display topics of paper", () => {
+    test("Return status code 200 and should should display topics of cats", () => {
       return request(app)
         .get("/api/articles?topic=cats")
         .expect(200)
@@ -322,17 +322,119 @@ describe("/api/comments/:comment_id", () => {
         });
     });
   });
-});
 
-describe("/api", () => {
-  describe("GET", () => {
-    test.only("Returns test status 200 and show JSON file", () => {
+  describe("PATCH", () => {
+    test("Return status code 201, increment votes by 1 and return object", () => {
+      const increaseVotes = { inc_votes: 1 };
       return request(app)
-        .get("/api")
-        .expect(200)
-        .then((res) => {
-          expect(typeof res.body.contents).toBe("string");
+        .patch("/api/comments/1")
+        .send(increaseVotes)
+        .expect(201)
+        .then(({ body }) => {
+          expect(typeof body).toBe("object");
+          expect(body.comment).toEqual({
+            body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+            votes: 17,
+            author: "butter_bridge",
+            article_id: 9,
+            comment_id: 1,
+            created_at: "2020-04-06T12:17:00.000Z",
+          });
+        });
+    });
+    test("Return status code 201, increment votes by 10 and return object", () => {
+      const decreaseVotes = { inc_votes: -1 };
+      return request(app)
+        .patch("/api/comments/1")
+        .send(decreaseVotes)
+        .expect(201)
+        .then(({ body }) => {
+          expect(typeof body).toBe("object");
+          expect(body.comment).toEqual({
+            body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+            votes: 15,
+            author: "butter_bridge",
+            article_id: 9,
+            comment_id: 1,
+            created_at: "2020-04-06T12:17:00.000Z",
+          });
+        });
+    });
+
+    test("Returns status code of 400 with error message when provided incorrect commentId", () => {
+      const decreaseVotes = { inc_votes: -1 };
+      return request(app)
+        .patch("/api/comments/apple")
+        .send(decreaseVotes)
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Bad request");
         });
     });
   });
 });
+
+describe("/api", () => {
+  describe("GET", () => {
+    test("Returns test status 200 and show JSON file", () => {
+      return request(app)
+        .get("/api")
+        .expect(200)
+        .then((res) => {
+          expect(typeof res.body).toBe("object");
+        });
+    });
+  });
+});
+
+describe("/api/users", () => {
+  describe("GET", () => {
+    test("Returns status code of 200 and an object with a key of topics and and array of objects as its value", () => {
+      return request(app)
+        .get("/api/users")
+        .expect(200)
+        .then((res) => {
+          expect(typeof res.body).toBe("object");
+          expect(res.body).hasOwnProperty("users");
+          if (res.body.length !== 0) {
+            res.body.users.forEach((user) => {
+              expect(user).toMatchObject({
+                username: expect.any(String),
+              });
+            });
+          } else {
+            fail("Error, body is empty");
+          }
+        });
+    });
+  });
+});
+
+describe("/api/users/:username", () => {
+  describe("GET", () => {
+    test("Return status code 200 with an array of objects containing the username of each user", () => {
+      return request(app)
+        .get("/api/users/rogersop")
+        .expect(200)
+        .then(({ body }) => {
+          expect(typeof body).toBe("object");
+          expect(body.user).toMatchObject({
+            username: "rogersop",
+            avatar_url:
+              "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4",
+            name: "paul",
+          });
+        });
+    });
+    test("Return status code 400 if username is not valid", () => {
+      return request(app)
+        .get("/api/users/notAValidUserName")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not found");
+        });
+    });
+  });
+});
+
+describe("/api/comments/:comment_id", () => {});
