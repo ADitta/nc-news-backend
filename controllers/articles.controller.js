@@ -4,6 +4,7 @@ const {
   selectArticles,
   selectCommentsByArticleId,
   createCommentByArticleId,
+  createArticle,
 } = require("../models/articles.models");
 const {
   checkArticleExists,
@@ -35,7 +36,7 @@ exports.patchArticleById = (req, res, next) => {
     .then((exists) => {
       if (exists) {
         return updateArticleById(articleId, articleBody).then((result) => {
-          return res.status(201).send({ result });
+          return res.status(200).send({ result });
         });
       } else {
         return Promise.reject({ status: 404, msg: "Not found" });
@@ -76,12 +77,15 @@ exports.getArticles = (req, res, next) => {
 
 exports.getCommentsByArticleId = (req, res, next) => {
   const articleId = req.params.article_id;
+  const queryLimit = req.params.limit;
   return checkArticleExists(articleId)
     .then((exists) => {
       if (exists) {
-        return selectCommentsByArticleId(articleId).then((comments) => {
-          return res.status(200).send({ comments });
-        });
+        return selectCommentsByArticleId(articleId, queryLimit).then(
+          (comments) => {
+            return res.status(200).send({ comments });
+          }
+        );
       } else {
         return Promise.reject({ status: 404, msg: "Not found" });
       }
@@ -116,4 +120,8 @@ exports.postCommentsByArticleId = (req, res, next) => {
     .catch((err) => {
       next(err);
     });
+};
+
+exports.postArticle = (req, res, next) => {
+  return createArticle().then(() => []);
 };

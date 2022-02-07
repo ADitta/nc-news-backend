@@ -70,7 +70,7 @@ describe("/api/articles/:article_id", () => {
     });
   });
   describe("PATCH", () => {
-    test("Return status code 201, increment votes by 10 and return object", () => {
+    test("Return status code 200, increment votes by 10 and return object", () => {
       const increaseVotes = { inc_votes: 10 };
       return request(app)
         .patch("/api/articles/1")
@@ -90,7 +90,7 @@ describe("/api/articles/:article_id", () => {
         });
     });
 
-    test("Return status code 201, increment votes by 10 and return object", () => {
+    test("Return status code 200, increment votes by 10 and return object", () => {
       const decreaseVotes = { inc_votes: -10 };
       return request(app)
         .patch("/api/articles/1")
@@ -247,12 +247,12 @@ describe("/api/articles", () => {
         });
     });
 
-    test.only("Return status code 200 and should display from article 4 onwards", () => {
+    test("Return status code 200 and should display from article 4 onwards", () => {
       return request(app)
-        .get("/api/articles?limit=2&p=2&sort_by=article_id&order_by=asc")
+        .get("/api/articles?limit=2&p=3&sort_by=article_id&order_by=asc")
         .expect(200)
         .then(({ body }) => {
-          expect(body.articles[0]).toBe(3);
+          expect(body.articles[0].article_id).toBe(5);
         });
     });
   });
@@ -283,6 +283,15 @@ describe("/api/articles/:article_id/comments", () => {
         .expect(404)
         .then(({ body }) => {
           expect(body.msg).toBe("Not found");
+        });
+    });
+
+    test("Return status code 200 and should show 3 comments", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=3")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comments.length).toBe(11);
         });
     });
   });
@@ -454,5 +463,3 @@ describe("/api/users/:username", () => {
     });
   });
 });
-
-describe("/api/comments/:comment_id", () => {});

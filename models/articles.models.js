@@ -62,7 +62,7 @@ exports.selectArticles = (
     .query(
       `SELECT articles.*, COUNT(comments.comment_id) AS comment_count
         FROM articles
-        INNER JOIN comments
+        LEFT JOIN comments
         ON articles.article_id = comments.article_id
         WHERE ${thereIsTopic} OR topic = $1
         GROUP BY articles.article_id
@@ -71,17 +71,17 @@ exports.selectArticles = (
       [queryTopic]
     )
     .then(({ rows }) => {
-      console.log(rows);
       return rows;
     });
 };
 
-exports.selectCommentsByArticleId = (articleId) => {
+exports.selectCommentsByArticleId = (articleId, queryLimit) => {
   return db
     .query(
       `SELECT comment_id, votes, created_at, author, body FROM comments
-    WHERE article_id = $1;`,
-      [articleId]
+    WHERE article_id = $1
+    LIMIT $2;`,
+      [articleId, queryLimit]
     )
     .then((comments) => {
       return comments.rows;
@@ -100,3 +100,5 @@ exports.createCommentByArticleId = (username, body, articleId) => {
       return comment.rows[0];
     });
 };
+
+exports.createArticle = () => {};
